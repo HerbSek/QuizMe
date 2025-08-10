@@ -1,0 +1,351 @@
+================================================================================
+                        QUIZME BACKEND API ROUTES DOCUMENTATION
+================================================================================
+
+BASE URL: https://quizme-ked0.onrender.com
+API Version: 1.0.0
+Authentication: Bearer Token (JWT)
+
+================================================================================
+                                CORE ENDPOINTS
+================================================================================
+
+GET /
+Description: Root endpoint - API welcome message
+Authentication: None required
+Input: None
+Output: 
+{
+  "message": "Welcome to QuizMe API"
+}
+
+GET /health
+Description: Health check endpoint
+Authentication: None required
+Input: None
+Output:
+{
+  "status": "healthy"
+}
+
+================================================================================
+                            AUTHENTICATION ROUTES
+================================================================================
+Prefix: /api/auth
+
+1. POST /api/auth/signup
+Description: Register a new user account
+Authentication: None required
+Input (JSON):
+{
+  "username": "string (required, max 50 chars, unique)",
+  "email": "string (required, valid email, unique)",
+  "password": "string (required)"
+}
+Output:
+{
+  "access_token": "string (JWT token)",
+  "token_type": "bearer"
+}
+Errors:
+- 400: Email already registered / Username already taken
+
+2. POST /api/auth/login
+Description: Authenticate user and get access token
+Authentication: None required
+Input (JSON):
+{
+  "email": "string (required, valid email)",
+  "password": "string (required)"
+}
+Output:
+{
+  "access_token": "string (JWT token)",
+  "token_type": "bearer"
+}
+Errors:
+- 401: Incorrect email or password
+
+3. GET /api/auth/me
+Description: Get current authenticated user information
+Authentication: Bearer token required
+Input: None
+Output:
+{
+  "id": "integer",
+  "username": "string",
+  "email": "string",
+  "is_active": "boolean",
+  "created_at": "datetime (ISO format)",
+  "updated_at": "datetime (ISO format, nullable)"
+}
+Errors:
+- 401: Invalid or missing token
+
+================================================================================
+                                QUIZ ROUTES
+================================================================================
+Prefix: /api/quizzes
+
+1. POST /api/quizzes/
+Description: Create a new quiz with questions and options
+Authentication: Bearer token required
+Input (JSON):
+{
+  "title": "string (required, max 200 chars)",
+  "description": "string (optional)",
+  "questions": [
+    {
+      "text": "string (required)",
+      "order": "integer (required)",
+      "options": [
+        {
+          "text": "string (required)",
+          "is_correct": "boolean (required)",
+          "order": "integer (required)"
+        }
+      ]
+    }
+  ]
+}
+Output:
+{
+  "id": "integer",
+  "title": "string",
+  "description": "string",
+  "creator_id": "integer",
+  "is_active": "boolean",
+  "questions": [
+    {
+      "id": "integer",
+      "quiz_id": "integer",
+      "text": "string",
+      "order": "integer",
+      "options": [
+        {
+          "id": "integer",
+          "text": "string",
+          "is_correct": "boolean",
+          "order": "integer"
+        }
+      ],
+      "created_at": "datetime"
+    }
+  ],
+  "created_at": "datetime",
+  "updated_at": "datetime"
+}
+
+2. GET /api/quizzes/mine
+Description: Get all quizzes created by the current user
+Authentication: Bearer token required
+Input: None
+Output:
+[
+  {
+    "id": "integer",
+    "title": "string",
+    "description": "string",
+    "creator_id": "integer",
+    "is_active": "boolean",
+    "question_count": "integer",
+    "created_at": "datetime"
+  }
+]
+
+3. GET /api/quizzes/{quiz_id}
+Description: Get a specific quiz by ID (only if owned by current user)
+Authentication: Bearer token required
+Input: quiz_id (path parameter, integer)
+Output:
+{
+  "id": "integer",
+  "title": "string",
+  "description": "string",
+  "creator_id": "integer",
+  "is_active": "boolean",
+  "questions": [
+    {
+      "id": "integer",
+      "quiz_id": "integer",
+      "text": "string",
+      "order": "integer",
+      "options": [
+        {
+          "id": "integer",
+          "text": "string",
+          "is_correct": "boolean",
+          "order": "integer"
+        }
+      ],
+      "created_at": "datetime"
+    }
+  ],
+  "created_at": "datetime",
+  "updated_at": "datetime"
+}
+Errors:
+- 404: Quiz not found
+
+4. DELETE /api/quizzes/{quiz_id}
+Description: Delete a quiz (soft delete - sets is_active to false)
+Authentication: Bearer token required
+Input: quiz_id (path parameter, integer)
+Output:
+{
+  "message": "Quiz deleted successfully"
+}
+Errors:
+- 404: Quiz not found
+
+================================================================================
+                            GAME SESSION ROUTES
+================================================================================
+Prefix: /api/sessions
+
+1. POST /api/sessions/start/{quiz_id}
+Description: Start a new game session for a quiz
+Authentication: Bearer token required (must be quiz owner)
+Input: quiz_id (path parameter, integer)
+Output:
+{
+  "id": "integer",
+  "quiz_id": "integer",
+  "host_id": "integer",
+  "game_code": "string (6 characters, unique)",
+  "status": "waiting",
+  "current_question_index": "integer (default: 0)",
+  "created_at": "datetime",
+  "started_at": "datetime (nullable)",
+  "finished_at": "datetime (nullable)"
+}
+Errors:
+- 404: Quiz not found
+
+2. POST /api/sessions/join
+Description: Join a game session using game code
+Authentication: Bearer token required
+Input (JSON):
+{
+  "game_code": "string (6 characters)"
+}
+Output:
+{
+  "id": "integer",
+  "quiz_id": "integer",
+  "host_id": "integer",
+  "game_code": "string",
+  "status": "string (waiting/active/finished)",
+  "current_question_index": "integer",
+  "created_at": "datetime",
+  "started_at": "datetime (nullable)",
+  "finished_at": "datetime (nullable)"
+}
+Errors:
+- 404: Game session not found or already finished
+
+3. POST /api/sessions/{session_id}/answer
+Description: Submit an answer for a question in a game session
+Authentication: Bearer token required
+Input: 
+- session_id (path parameter, integer)
+- JSON body:
+{
+  "question_id": "integer (required)",
+  "selected_option_id": "integer (required)"
+}
+Output:
+{
+  "message": "Answer submitted successfully",
+  "is_correct": "boolean"
+}
+Errors:
+- 404: Game session not found or not active
+- 400: Question not found in this quiz
+- 400: Option not found for this question
+- 400: You have already answered this question
+
+4. GET /api/sessions/{session_id}/leaderboard
+Description: Get the leaderboard for a game session
+Authentication: Bearer token required
+Input: session_id (path parameter, integer)
+Output:
+{
+  "session_id": "integer",
+  "entries": [
+    {
+      "player_id": "integer",
+      "username": "string",
+      "score": "integer (number of correct answers)",
+      "correct_answers": "integer",
+      "total_answers": "integer"
+    }
+  ]
+}
+Errors:
+- 404: Game session not found
+
+================================================================================
+                            SESSION STATUS VALUES
+================================================================================
+
+SessionStatus Enum:
+- "waiting": Session created, waiting for players to join
+- "active": Session is currently running, players can answer questions
+- "finished": Session has ended, no more answers accepted
+
+================================================================================
+                            AUTHENTICATION DETAILS
+================================================================================
+
+JWT Token:
+- Header: Authorization: Bearer <token>
+- Token expires after configured time (default: 30 minutes)
+- Token contains user information in "sub" field (username)
+
+Protected Routes:
+- All /api/quizzes/* endpoints require authentication
+- All /api/sessions/* endpoints require authentication
+- /api/auth/me requires authentication
+
+================================================================================
+                                ERROR RESPONSES
+================================================================================
+
+Standard Error Format:
+{
+  "detail": "string (error message)"
+}
+
+Common HTTP Status Codes:
+- 200: Success
+- 201: Created
+- 400: Bad Request (validation errors, business logic errors)
+- 401: Unauthorized (missing or invalid token)
+- 404: Not Found (resource doesn't exist)
+- 422: Unprocessable Entity (validation errors)
+- 500: Internal Server Error
+
+================================================================================
+                            BUSINESS LOGIC NOTES
+================================================================================
+
+Quiz Creation:
+- Questions must have at least one option
+- Exactly one option per question must be marked as correct
+- Order fields are used for display sequence
+
+Game Sessions:
+- Game codes are 6-character alphanumeric strings (uppercase)
+- Only quiz owners can start sessions for their quizzes
+- Players can only submit one answer per question per session
+- Leaderboard is calculated based on correct answers count
+
+User Management:
+- Usernames and emails must be unique
+- Passwords are hashed using bcrypt
+- Users can only access their own quizzes and participate in sessions
+
+================================================================================
+                                END OF DOCUMENTATION
+================================================================================

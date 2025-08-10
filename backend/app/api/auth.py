@@ -14,7 +14,6 @@ from app.core.config import settings
 
 router = APIRouter()
 
-
 @router.post("/signup", response_model=Token)
 async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
     """Register a new user."""
