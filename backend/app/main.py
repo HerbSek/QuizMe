@@ -20,6 +20,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:8080",  # Alternative dev server port
         "https://quizmeapp.onrender.com"  # Your actual frontend URL
     ],
     allow_credentials=True,
