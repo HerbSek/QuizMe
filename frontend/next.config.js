@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Removed API rewrites since we're using the deployed backend directly
+  output: 'export',
+  trailingSlash: true,
+  images: {
+    unoptimized: true
+  }
 }
 
 module.exports = nextConfig
+
