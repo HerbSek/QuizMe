@@ -257,7 +257,13 @@ Prefix: /api/sessions
 1. POST /api/sessions/start/{quiz_id}
 Description: Start a new game session for a quiz
 Authentication: Bearer token required (must be quiz owner)
-Input: quiz_id (path parameter, integer)
+Input:
+- quiz_id (path parameter, integer)
+- JSON body:
+{
+  "quiz_id": "integer (required)",
+  "question_time_limit": "integer (optional, default: 30 seconds)"
+}
 Output:
 {
   "id": "integer",
@@ -266,9 +272,12 @@ Output:
   "game_code": "string (6 characters, unique)",
   "status": "waiting",
   "current_question_index": "integer (default: 0)",
+  "question_time_limit": "integer (seconds per question)",
   "created_at": "datetime",
   "started_at": "datetime (nullable)",
-  "finished_at": "datetime (nullable)"
+  "finished_at": "datetime (nullable)",
+  "current_question_started_at": "datetime (nullable)",
+  "participants": []
 }
 Errors:
 - 404: Quiz not found
@@ -295,7 +304,7 @@ Output:
 Errors:
 - 404: Game session not found or already finished
 
-8. POST /api/sessions/{session_id}/answer
+10. POST /api/sessions/{session_id}/answer
 Description: Submit an answer for a question in a game session
 Authentication: Bearer token required
 Input: 
@@ -303,7 +312,8 @@ Input:
 - JSON body:
 {
   "question_id": "integer (required)",
-  "selected_option_id": "integer (required)"
+  "selected_option_id": "integer (required)",
+  "answer_time": "float (optional, time taken in seconds)"
 }
 Output:
 {
@@ -335,7 +345,25 @@ Output:
 Errors:
 - 404: Game session not found
 
-5. POST /api/sessions/{session_id}/start
+5. GET /api/sessions/{session_id}/participants
+Description: Get all participants in a game session
+Authentication: Bearer token required
+Input: session_id (path parameter, integer)
+Output:
+[
+  {
+    "id": "integer",
+    "session_id": "integer",
+    "user_id": "integer",
+    "username": "string",
+    "joined_at": "datetime",
+    "is_active": "boolean"
+  }
+]
+Errors:
+- 404: Game session not found
+
+6. POST /api/sessions/{session_id}/start
 Description: Start a game session (change status from WAITING to ACTIVE)
 Authentication: Bearer token required (must be session host)
 Input: session_id (path parameter, integer)
@@ -356,7 +384,29 @@ Errors:
 - 403: Only the host can start the session
 - 400: Session is not in waiting status
 
-6. POST /api/sessions/{session_id}/end
+7. POST /api/sessions/{session_id}/next-question
+Description: Move to the next question in the quiz
+Authentication: Bearer token required (must be session host)
+Input: session_id (path parameter, integer)
+Output:
+{
+  "id": "integer",
+  "quiz_id": "integer",
+  "host_id": "integer",
+  "game_code": "string",
+  "status": "string (active/finished)",
+  "current_question_index": "integer (incremented)",
+  "question_time_limit": "integer",
+  "created_at": "datetime",
+  "started_at": "datetime",
+  "finished_at": "datetime (nullable)",
+  "current_question_started_at": "datetime (updated)"
+}
+Errors:
+- 404: Game session not found
+- 403: Only the host can control question progression
+
+8. POST /api/sessions/{session_id}/end
 Description: End a game session (change status to FINISHED)
 Authentication: Bearer token required (must be session host)
 Input: session_id (path parameter, integer)
@@ -376,7 +426,7 @@ Errors:
 - 404: Game session not found
 - 403: Only the host can end the session
 
-7. GET /api/sessions/{session_id}/leaderboard
+9. GET /api/sessions/{session_id}/leaderboard
 Description: Get the leaderboard for a game session
 Authentication: Bearer token required
 Input: session_id (path parameter, integer)
@@ -389,7 +439,8 @@ Output:
       "username": "string",
       "score": "integer (number of correct answers)",
       "correct_answers": "integer",
-      "total_answers": "integer"
+      "total_answers": "integer",
+      "average_time": "float (average answer time in seconds, nullable)"
     }
   ]
 }

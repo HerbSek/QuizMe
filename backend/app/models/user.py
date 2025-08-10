@@ -19,3 +19,4 @@ class User(Base):
     quizzes = relationship("Quiz", back_populates="creator")
     game_sessions = relationship("GameSession", back_populates="host")
     player_answers = relationship("PlayerAnswer", back_populates="player")
+    session_participations = relationship("SessionParticipant", back_populates="user")

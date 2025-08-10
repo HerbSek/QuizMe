@@ -7,12 +7,13 @@ from sqlalchemy import func
 from app.db.database import get_db
 from app.models.user import User
 from app.models.quiz import Quiz, Question, Option
-from app.models.session import GameSession, PlayerAnswer, SessionStatus
+from app.models.session import GameSession, SessionParticipant, PlayerAnswer, SessionStatus
 from app.schemas.session import (
     GameSessionCreate,
     GameSessionJoin,
     PlayerAnswerCreate,
     GameSession as GameSessionSchema,
+    SessionParticipant as SessionParticipantSchema,
     Leaderboard,
     LeaderboardEntry
 )
@@ -29,6 +30,7 @@ def generate_game_code() -> str:
 @router.post("/start/{quiz_id}", response_model=GameSessionSchema)
 async def start_game_session(
     quiz_id: int,
+    session_data: GameSessionCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -56,7 +58,8 @@ async def start_game_session(
         quiz_id=quiz_id,
         host_id=current_user.id,
         game_code=game_code,
-        status=SessionStatus.WAITING
+        status=SessionStatus.WAITING,
+        question_time_limit=session_data.question_time_limit
     )
     
     db.add(db_session)
@@ -119,9 +122,10 @@ async def start_game_session_by_id(
             detail="Session is not in waiting status"
         )
 
-    # Update session status to active
+    # Update session status to active and start first question
     session.status = SessionStatus.ACTIVE
     session.started_at = func.now()
+    session.current_question_started_at = func.now()
 
     db.commit()
     db.refresh(session)
@@ -143,6 +147,91 @@ async def get_game_session(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Game session not found"
         )
+
+    # Add user as participant
+    participant = SessionParticipant(
+        session_id=session.id,
+        user_id=current_user.id
+    )
+    db.add(participant)
+    db.commit()
+
+    return session
+
+
+@router.get("/{session_id}/participants", response_model=List[SessionParticipantSchema])
+async def get_session_participants(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all participants in a game session."""
+    session = db.query(GameSession).filter(GameSession.id == session_id).first()
+
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game session not found"
+        )
+
+    participants = db.query(SessionParticipant, User.username).join(
+        User, SessionParticipant.user_id == User.id
+    ).filter(
+        SessionParticipant.session_id == session_id,
+        SessionParticipant.is_active == True
+    ).all()
+
+    result = []
+    for participant, username in participants:
+        result.append(SessionParticipantSchema(
+            id=participant.id,
+            session_id=participant.session_id,
+            user_id=participant.user_id,
+            username=username,
+            joined_at=participant.joined_at,
+            is_active=participant.is_active
+        ))
+
+    return result
+
+
+@router.post("/{session_id}/next-question", response_model=GameSessionSchema)
+async def next_question(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Move to the next question (only host can do this)."""
+    session = db.query(GameSession).filter(GameSession.id == session_id).first()
+
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game session not found"
+        )
+
+    # Check if current user is the host
+    if session.host_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the host can control question progression"
+        )
+
+    # Get quiz to check total questions
+    quiz = db.query(Quiz).filter(Quiz.id == session.quiz_id).first()
+    total_questions = len(quiz.questions)
+
+    if session.current_question_index >= total_questions - 1:
+        # End the session if this was the last question
+        session.status = SessionStatus.FINISHED
+        session.finished_at = func.now()
+    else:
+        # Move to next question
+        session.current_question_index += 1
+        session.current_question_started_at = func.now()
+
+    db.commit()
+    db.refresh(session)
 
     return session
 
@@ -242,7 +331,8 @@ async def submit_answer(
         player_id=current_user.id,
         question_id=answer_data.question_id,
         selected_option_id=answer_data.selected_option_id,
-        is_correct=option.is_correct
+        is_correct=option.is_correct,
+        answer_time=answer_data.answer_time
     )
     
     db.add(player_answer)
@@ -267,12 +357,13 @@ async def get_leaderboard(
             detail="Game session not found"
         )
     
-    # Get leaderboard data
+    # Get leaderboard data with timing
     leaderboard_data = db.query(
         User.id,
         User.username,
         func.sum(PlayerAnswer.is_correct.cast(db.bind.dialect.name == 'postgresql' and 'integer' or 'int')).label('score'),
-        func.count(PlayerAnswer.id).label('total_answers')
+        func.count(PlayerAnswer.id).label('total_answers'),
+        func.avg(PlayerAnswer.answer_time).label('avg_time')
     ).join(
         PlayerAnswer, User.id == PlayerAnswer.player_id
     ).filter(
@@ -280,17 +371,19 @@ async def get_leaderboard(
     ).group_by(
         User.id, User.username
     ).order_by(
-        func.sum(PlayerAnswer.is_correct.cast(db.bind.dialect.name == 'postgresql' and 'integer' or 'int')).desc()
+        func.sum(PlayerAnswer.is_correct.cast(db.bind.dialect.name == 'postgresql' and 'integer' or 'int')).desc(),
+        func.avg(PlayerAnswer.answer_time).asc()  # Faster average time as tiebreaker
     ).all()
-    
+
     entries = []
-    for user_id, username, score, total_answers in leaderboard_data:
+    for user_id, username, score, total_answers, avg_time in leaderboard_data:
         entries.append(LeaderboardEntry(
             player_id=user_id,
             username=username,
             score=score or 0,
             correct_answers=score or 0,
-            total_answers=total_answers
+            total_answers=total_answers,
+            average_time=avg_time
         ))
     
     return Leaderboard(session_id=session_id, entries=entries)
