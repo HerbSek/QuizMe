@@ -84,6 +84,98 @@ async def join_game_session(
             detail="Game session not found or already finished"
         )
     
+    # Optionally, you could track when users join by creating a join record
+    # For now, we just return the session info
+
+    return session
+
+
+@router.post("/{session_id}/start", response_model=GameSessionSchema)
+async def start_game_session_by_id(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Start a game session (change status from WAITING to ACTIVE). Only host can do this."""
+    session = db.query(GameSession).filter(GameSession.id == session_id).first()
+
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game session not found"
+        )
+
+    # Check if current user is the host
+    if session.host_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the host can start the session"
+        )
+
+    # Check if session is in waiting status
+    if session.status != SessionStatus.WAITING:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Session is not in waiting status"
+        )
+
+    # Update session status to active
+    session.status = SessionStatus.ACTIVE
+    session.started_at = func.now()
+
+    db.commit()
+    db.refresh(session)
+
+    return session
+
+
+@router.get("/{session_id}", response_model=GameSessionSchema)
+async def get_game_session(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get a specific game session by ID."""
+    session = db.query(GameSession).filter(GameSession.id == session_id).first()
+
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game session not found"
+        )
+
+    return session
+
+
+@router.post("/{session_id}/end", response_model=GameSessionSchema)
+async def end_game_session(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """End a game session (only host can do this)."""
+    session = db.query(GameSession).filter(GameSession.id == session_id).first()
+
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game session not found"
+        )
+
+    # Check if current user is the host
+    if session.host_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the host can end the session"
+        )
+
+    # Update session status to finished
+    session.status = SessionStatus.FINISHED
+    session.finished_at = func.now()
+
+    db.commit()
+    db.refresh(session)
+
     return session
 
 
