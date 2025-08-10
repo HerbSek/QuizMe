@@ -86,9 +86,22 @@ async def join_game_session(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Game session not found or already finished"
         )
-    
-    # Optionally, you could track when users join by creating a join record
-    # For now, we just return the session info
+
+    # Check if user is already a participant
+    existing_participant = db.query(SessionParticipant).filter(
+        SessionParticipant.session_id == session.id,
+        SessionParticipant.user_id == current_user.id,
+        SessionParticipant.is_active == True
+    ).first()
+
+    if not existing_participant:
+        # Add user as participant
+        participant = SessionParticipant(
+            session_id=session.id,
+            user_id=current_user.id
+        )
+        db.add(participant)
+        db.commit()
 
     return session
 
