@@ -18,7 +18,10 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js default port
+    allow_origins=[
+        "http://localhost:3000",
+        "https://quizmeapp.onrender.com"  # Your actual frontend URL
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -38,3 +41,4 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
