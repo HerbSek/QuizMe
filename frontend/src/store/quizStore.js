@@ -1,28 +1,13 @@
 import { create } from 'zustand';
-import { Quiz, QuizSummary, QuizCreate, createQuiz, getMyQuizzes, getQuiz, deleteQuiz } from '../lib/quiz';
+import { createQuiz, getMyQuizzes, getQuiz, deleteQuiz } from '../lib/api';
 
-interface QuizState {
-  quizzes: QuizSummary[];
-  currentQuiz: Quiz | null;
-  isLoading: boolean;
-  error: string | null;
-  
-  // Actions
-  createQuiz: (quizData: QuizCreate) => Promise<Quiz>;
-  fetchMyQuizzes: () => Promise<void>;
-  fetchQuiz: (quizId: number) => Promise<void>;
-  deleteQuiz: (quizId: number) => Promise<void>;
-  clearError: () => void;
-  setCurrentQuiz: (quiz: Quiz | null) => void;
-}
-
-export const useQuizStore = create<QuizState>((set, get) => ({
+export const useQuizStore = create((set, get) => ({
   quizzes: [],
   currentQuiz: null,
   isLoading: false,
   error: null,
-
-  createQuiz: async (quizData: QuizCreate) => {
+  
+  createQuiz: async (quizData) => {
     set({ isLoading: true, error: null });
     try {
       const newQuiz = await createQuiz(quizData);
@@ -32,7 +17,7 @@ export const useQuizStore = create<QuizState>((set, get) => ({
       get().fetchMyQuizzes();
       
       return newQuiz;
-    } catch (error: any) {
+    } catch (error) {
       set({ 
         isLoading: false, 
         error: error.response?.data?.detail || 'Failed to create quiz' 
@@ -46,7 +31,7 @@ export const useQuizStore = create<QuizState>((set, get) => ({
     try {
       const quizzes = await getMyQuizzes();
       set({ quizzes, isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
       set({ 
         isLoading: false, 
         error: error.response?.data?.detail || 'Failed to fetch quizzes' 
@@ -54,12 +39,12 @@ export const useQuizStore = create<QuizState>((set, get) => ({
     }
   },
 
-  fetchQuiz: async (quizId: number) => {
+  fetchQuiz: async (quizId) => {
     set({ isLoading: true, error: null });
     try {
       const quiz = await getQuiz(quizId);
       set({ currentQuiz: quiz, isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
       set({ 
         isLoading: false, 
         error: error.response?.data?.detail || 'Failed to fetch quiz' 
@@ -67,7 +52,7 @@ export const useQuizStore = create<QuizState>((set, get) => ({
     }
   },
 
-  deleteQuiz: async (quizId: number) => {
+  deleteQuiz: async (quizId) => {
     set({ isLoading: true, error: null });
     try {
       await deleteQuiz(quizId);
@@ -76,7 +61,7 @@ export const useQuizStore = create<QuizState>((set, get) => ({
       // Remove from local state
       const { quizzes } = get();
       set({ quizzes: quizzes.filter(q => q.id !== quizId) });
-    } catch (error: any) {
+    } catch (error) {
       set({ 
         isLoading: false, 
         error: error.response?.data?.detail || 'Failed to delete quiz' 
@@ -87,5 +72,5 @@ export const useQuizStore = create<QuizState>((set, get) => ({
 
   clearError: () => set({ error: null }),
   
-  setCurrentQuiz: (quiz: Quiz | null) => set({ currentQuiz: quiz }),
+  setCurrentQuiz: (quiz) => set({ currentQuiz: quiz }),
 }));

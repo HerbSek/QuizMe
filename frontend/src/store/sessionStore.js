@@ -1,46 +1,26 @@
 import { create } from 'zustand';
-import {
-  GameSession,
-  Leaderboard,
-  PlayerAnswerCreate,
-  AnswerResponse,
-  startGameSession,
-  joinGameSession,
-  submitAnswer,
-  getLeaderboard,
-} from '../lib/session';
+import { startGameSession, joinGameSession, submitAnswer, getLeaderboard } from '../lib/api';
 
-interface SessionState {
-  currentSession: GameSession | null;
-  leaderboard: Leaderboard | null;
-  isLoading: boolean;
-  error: string | null;
-  lastAnswer: AnswerResponse | null;
-  
-  // Actions
-  startSession: (quizId: number) => Promise<GameSession>;
-  joinSession: (gameCode: string) => Promise<GameSession>;
-  submitAnswer: (sessionId: number, answerData: PlayerAnswerCreate) => Promise<AnswerResponse>;
-  fetchLeaderboard: (sessionId: number) => Promise<void>;
-  clearError: () => void;
-  clearSession: () => void;
-  setCurrentSession: (session: GameSession | null) => void;
-}
+export const SessionStatus = {
+  WAITING: 'waiting',
+  ACTIVE: 'active',
+  FINISHED: 'finished',
+};
 
-export const useSessionStore = create<SessionState>((set, get) => ({
+export const useSessionStore = create((set, get) => ({
   currentSession: null,
   leaderboard: null,
   isLoading: false,
   error: null,
   lastAnswer: null,
 
-  startSession: async (quizId: number) => {
+  startSession: async (quizId) => {
     set({ isLoading: true, error: null });
     try {
       const session = await startGameSession(quizId);
       set({ currentSession: session, isLoading: false });
       return session;
-    } catch (error: any) {
+    } catch (error) {
       set({
         isLoading: false,
         error: error.response?.data?.detail || 'Failed to start game session',
@@ -49,13 +29,13 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     }
   },
 
-  joinSession: async (gameCode: string) => {
+  joinSession: async (gameCode) => {
     set({ isLoading: true, error: null });
     try {
       const session = await joinGameSession(gameCode);
       set({ currentSession: session, isLoading: false });
       return session;
-    } catch (error: any) {
+    } catch (error) {
       set({
         isLoading: false,
         error: error.response?.data?.detail || 'Failed to join game session',
@@ -64,13 +44,13 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     }
   },
 
-  submitAnswer: async (sessionId: number, answerData: PlayerAnswerCreate) => {
+  submitAnswer: async (sessionId, answerData) => {
     set({ isLoading: true, error: null });
     try {
       const response = await submitAnswer(sessionId, answerData);
       set({ lastAnswer: response, isLoading: false });
       return response;
-    } catch (error: any) {
+    } catch (error) {
       set({
         isLoading: false,
         error: error.response?.data?.detail || 'Failed to submit answer',
@@ -79,12 +59,12 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     }
   },
 
-  fetchLeaderboard: async (sessionId: number) => {
+  fetchLeaderboard: async (sessionId) => {
     set({ isLoading: true, error: null });
     try {
       const leaderboard = await getLeaderboard(sessionId);
       set({ leaderboard, isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
       set({
         isLoading: false,
         error: error.response?.data?.detail || 'Failed to fetch leaderboard',
@@ -101,5 +81,5 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     error: null 
   }),
   
-  setCurrentSession: (session: GameSession | null) => set({ currentSession: session }),
+  setCurrentSession: (session) => set({ currentSession: session }),
 }));

@@ -1,22 +1,12 @@
 import { create } from 'zustand';
-import { User, login, signup, getCurrentUser, setToken, removeToken, LoginCredentials, SignupCredentials } from '../lib/auth';
+import { login, signup, getCurrentUser, setToken, removeToken } from '../lib/api';
 
-interface AuthState {
-  user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  signup: (credentials: SignupCredentials) => Promise<void>;
-  logout: () => void;
-  checkAuth: () => Promise<void>;
-}
-
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create((set, get) => ({
   user: null,
   isLoading: false,
   isAuthenticated: false,
 
-  login: async (credentials: LoginCredentials) => {
+  login: async (credentials) => {
     set({ isLoading: true });
     try {
       const authResponse = await login(credentials);
@@ -30,7 +20,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  signup: async (credentials: SignupCredentials) => {
+  signup: async (credentials) => {
     set({ isLoading: true });
     try {
       const authResponse = await signup(credentials);

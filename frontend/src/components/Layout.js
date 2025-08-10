@@ -1,19 +1,14 @@
-import { ReactNode } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useAuthStore } from '@/store/authStore';
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 
-interface LayoutProps {
-  children: ReactNode;
-}
-
-export default function Layout({ children }: LayoutProps) {
-  const router = useRouter();
+const Layout = ({ children }) => {
+  const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthStore();
 
   const handleLogout = () => {
     logout();
-    router.push('/');
+    navigate('/');
   };
 
   return (
@@ -22,7 +17,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/" className="text-2xl font-bold text-primary-600">
+              <Link to="/" className="text-2xl font-bold text-blue-600">
                 QuizMe
               </Link>
             </div>
@@ -30,13 +25,13 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center space-x-4">
               {isAuthenticated ? (
                 <>
-                  <Link href="/dashboard" className="text-gray-700 hover:text-primary-600">
+                  <Link to="/dashboard" className="text-gray-700 hover:text-blue-600">
                     Dashboard
                   </Link>
-                  <Link href="/quizzes" className="text-gray-700 hover:text-primary-600">
+                  <Link to="/quizzes" className="text-gray-700 hover:text-blue-600">
                     My Quizzes
                   </Link>
-                  <Link href="/join" className="text-gray-700 hover:text-primary-600">
+                  <Link to="/join" className="text-gray-700 hover:text-blue-600">
                     Join Game
                   </Link>
                   <div className="flex items-center space-x-2">
@@ -53,10 +48,10 @@ export default function Layout({ children }: LayoutProps) {
                 </>
               ) : (
                 <>
-                  <Link href="/login" className="text-gray-700 hover:text-primary-600">
+                  <Link to="/login" className="text-gray-700 hover:text-blue-600">
                     Login
                   </Link>
-                  <Link href="/signup" className="btn-primary">
+                  <Link to="/signup" className="btn-primary">
                     Sign Up
                   </Link>
                 </>
@@ -71,4 +66,6 @@ export default function Layout({ children }: LayoutProps) {
       </main>
     </div>
   );
-}
+};
+
+export default Layout;
