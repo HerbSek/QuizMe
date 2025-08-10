@@ -1,0 +1,165 @@
+Name of app: QuizMe
+
+* **Backend**: FastAPI
+* **Database**: SQLite (with PostgreSQL-compatible methods)
+* **Auth**: JWT
+* **Migrations**: Alembic
+* **Frontend**: Next.js (recommended stack)
+
+---
+
+# 🎯 Project Prompt: Simplified Kahoot Clone
+
+## 🛠️ Tech Stack
+
+### Backend
+
+* **Framework**: FastAPI
+* **Authentication**: JWT-based login/signup
+* **ORM**: SQLAlchemy
+* **Migrations**: Alembic
+* **Database**: SQLite (use PostgreSQL-compatible methods)
+
+### Frontend
+
+* **Framework**: Next.js
+* **Styling**: TailwindCSS or your preferred CSS framework
+* **State Management**: React Context or Zustand
+* **Data Fetching**: SWR or React Query
+* **Authentication**: JWT stored in HTTP-only cookies or localStorage
+
+---
+
+## ✅ Core Features
+
+### 1. User Authentication
+
+* **Sign up**
+
+  * Username
+  * Email
+  * Password (hashed via bcrypt)
+* **Login**
+
+  * Email + Password
+  * Returns a JWT token
+* **JWT Middleware**
+
+  * Protect certain routes (e.g., create quiz, join quiz)
+
+### 2. Quizzes
+
+* **Create Quiz**
+
+  * Title
+  * Description (optional)
+  * List of questions with options and correct answer(s)
+* **List My Quizzes**
+* **Delete Quiz**
+
+### 3. Questions & Answers
+
+* **Multiple Choice Questions Only**
+* Each question:
+
+  * Text
+  * 4 options
+  * 1 correct answer
+
+### 4. Game Session (Live Play)
+
+* A host can **start a quiz session**
+* Other users can **join using a game code**
+* The host controls the flow (next question, show result)
+* Players answer in real-time
+* Show leaderboard at the end
+
+---
+
+## 📁 Suggested Directory Structure
+
+### Backend (FastAPI)
+
+```
+backend/
+├── app/
+│   ├── main.py
+│   ├── models/
+│   ├── schemas/
+│   ├── api/
+│   ├── core/
+│   ├── db/
+│   └── auth/
+├── alembic/
+└── alembic.ini
+```
+
+### Frontend (Next.js)
+
+```
+frontend/
+├── pages/
+│   ├── index.tsx
+│   ├── login.tsx
+│   ├── signup.tsx
+│   └── dashboard.tsx
+├── components/
+├── context/
+├── utils/
+└── styles/
+```
+
+---
+
+## 🧩 API Endpoints (Sample)
+
+### Auth
+
+* `POST /auth/signup`
+* `POST /auth/login`
+* `GET /auth/me`
+
+### Quizzes
+
+* `POST /quizzes/`
+* `GET /quizzes/mine`
+* `DELETE /quizzes/{quiz_id}`
+
+### Sessions
+
+* `POST /sessions/start/{quiz_id}`
+* `POST /sessions/join`
+* `POST /sessions/{session_id}/answer`
+* `GET /sessions/{session_id}/leaderboard`
+
+---
+
+## 🔄 Migrations with Alembic
+
+Set up Alembic with autogeneration support. Use:
+
+```bash
+alembic init alembic
+alembic revision --autogenerate -m "Initial migration"
+alembic upgrade head
+```
+
+Make sure models and metadata are PostgreSQL-friendly (e.g., UUIDs, constraints, etc.).
+
+---
+
+## 🔐 JWT Auth Flow
+
+* On login/signup, generate a JWT token and return it
+* Include token in `Authorization: Bearer <token>` header for protected routes
+* Validate token on each request via FastAPI dependency
+
+---
+
+## 🚀 Deployment Notes
+
+* Backend should expose API on `/api`
+* Frontend can proxy requests to FastAPI backend in development
+* When ready, connect PostgreSQL via environment variable (e.g., `DATABASE_URL`)
+
+---
