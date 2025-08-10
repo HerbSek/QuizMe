@@ -86,25 +86,83 @@ async def get_my_quizzes(
     return result
 
 
+@router.get("/", response_model=List[QuizSummary])
+async def get_all_quizzes(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all active quizzes (for browsing/joining games)."""
+    quizzes = db.query(
+        Quiz,
+        func.count(Question.id).label("question_count")
+    ).outerjoin(Question).filter(
+        Quiz.is_active == True
+    ).group_by(Quiz.id).all()
+
+    result = []
+    for quiz, question_count in quizzes:
+        quiz_summary = QuizSummary(
+            id=quiz.id,
+            title=quiz.title,
+            description=quiz.description,
+            creator_id=quiz.creator_id,
+            is_active=quiz.is_active,
+            question_count=question_count,
+            created_at=quiz.created_at
+        )
+        result.append(quiz_summary)
+
+    return result
+
+
 @router.get("/{quiz_id}", response_model=QuizSchema)
 async def get_quiz(
     quiz_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get a specific quiz by ID."""
+    """Get a specific quiz by ID (accessible to all users for playing)."""
+    quiz = db.query(Quiz).filter(
+        Quiz.id == quiz_id,
+        Quiz.is_active == True
+    ).first()
+
+    if not quiz:
+        # Check if quiz exists but is inactive
+        inactive_quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
+        if inactive_quiz:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Quiz not found or has been deactivated"
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Quiz not found"
+            )
+    
+    return quiz
+
+
+@router.get("/{quiz_id}/manage", response_model=QuizSchema)
+async def get_quiz_for_management(
+    quiz_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get a specific quiz by ID for management (only quiz creator can access)."""
     quiz = db.query(Quiz).filter(
         Quiz.id == quiz_id,
         Quiz.creator_id == current_user.id,
         Quiz.is_active == True
     ).first()
-    
+
     if not quiz:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Quiz not found"
+            detail="Quiz not found or you don't have permission to manage it"
         )
-    
+
     return quiz
 
 

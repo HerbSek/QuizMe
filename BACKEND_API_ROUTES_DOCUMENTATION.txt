@@ -136,7 +136,24 @@ Output:
   "updated_at": "datetime"
 }
 
-2. GET /api/quizzes/mine
+2. GET /api/quizzes/
+Description: Get all active quizzes (for browsing/joining games)
+Authentication: Bearer token required
+Input: None
+Output:
+[
+  {
+    "id": "integer",
+    "title": "string",
+    "description": "string",
+    "creator_id": "integer",
+    "is_active": "boolean",
+    "question_count": "integer",
+    "created_at": "datetime"
+  }
+]
+
+3. GET /api/quizzes/mine
 Description: Get all quizzes created by the current user
 Authentication: Bearer token required
 Input: None
@@ -153,8 +170,8 @@ Output:
   }
 ]
 
-3. GET /api/quizzes/{quiz_id}
-Description: Get a specific quiz by ID (only if owned by current user)
+4. GET /api/quizzes/{quiz_id}
+Description: Get a specific quiz by ID (accessible to all users for playing)
 Authentication: Bearer token required
 Input: quiz_id (path parameter, integer)
 Output:
@@ -187,7 +204,41 @@ Output:
 Errors:
 - 404: Quiz not found
 
-4. DELETE /api/quizzes/{quiz_id}
+5. GET /api/quizzes/{quiz_id}/manage
+Description: Get a specific quiz by ID for management (only quiz creator can access)
+Authentication: Bearer token required (must be quiz creator)
+Input: quiz_id (path parameter, integer)
+Output:
+{
+  "id": "integer",
+  "title": "string",
+  "description": "string",
+  "creator_id": "integer",
+  "is_active": "boolean",
+  "questions": [
+    {
+      "id": "integer",
+      "quiz_id": "integer",
+      "text": "string",
+      "order": "integer",
+      "options": [
+        {
+          "id": "integer",
+          "text": "string",
+          "is_correct": "boolean",
+          "order": "integer"
+        }
+      ],
+      "created_at": "datetime"
+    }
+  ],
+  "created_at": "datetime",
+  "updated_at": "datetime"
+}
+Errors:
+- 404: Quiz not found or you don't have permission to manage it
+
+6. DELETE /api/quizzes/{quiz_id}
 Description: Delete a quiz (soft delete - sets is_active to false)
 Authentication: Bearer token required
 Input: quiz_id (path parameter, integer)
