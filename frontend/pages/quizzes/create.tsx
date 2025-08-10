@@ -237,7 +237,6 @@ export default function CreateQuizPage() {
                         <div key={optionIndex} className="flex items-center space-x-3">
                           <input
                             type="radio"
-                            name={`question-${questionIndex}-correct`}
                             className="text-primary-600"
                             {...register(`questions.${questionIndex}.options.${optionIndex}.is_correct`)}
                             onChange={() => setCorrectAnswer(questionIndex, optionIndex)}
