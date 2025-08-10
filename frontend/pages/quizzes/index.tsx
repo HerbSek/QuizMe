@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import Layout from '@/components/Layout';
-import { useAuthStore } from '@/store/authStore';
-import { useQuizStore } from '@/store/quizStore';
-import { QuizSummary } from '@/lib/quiz';
+import Layout from '../../components/Layout';
+import { useAuthStore } from '../../store/authStore';
+import { useQuizStore } from '../../store/quizStore';
+import { QuizSummary } from '../../lib/quiz';
 
 export default function QuizzesPage() {
   const router = useRouter();

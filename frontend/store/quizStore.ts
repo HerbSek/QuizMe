@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Quiz, QuizSummary, QuizCreate, createQuiz, getMyQuizzes, getQuiz, deleteQuiz } from '@/lib/quiz';
+import { Quiz, QuizSummary, QuizCreate, createQuiz, getMyQuizzes, getQuiz, deleteQuiz } from '../lib/quiz';
 
 interface QuizState {
   quizzes: QuizSummary[];

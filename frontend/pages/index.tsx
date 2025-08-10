@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Layout from '@/components/Layout';
-import { useAuthStore } from '@/store/authStore';
+import Layout from '../components/Layout';
+import { useAuthStore } from '../store/authStore';
 
 export default function Home() {
   const router = useRouter();

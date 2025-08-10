@@ -8,7 +8,7 @@ import {
   joinGameSession,
   submitAnswer,
   getLeaderboard,
-} from '@/lib/session';
+} from '../lib/session';
 
 interface SessionState {
   currentSession: GameSession | null;

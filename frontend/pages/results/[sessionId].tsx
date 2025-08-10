@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Layout from '@/components/Layout';
-import { useAuthStore } from '@/store/authStore';
-import { useSessionStore } from '@/store/sessionStore';
+import Layout from '../../components/Layout';
+import { useAuthStore } from '../../store/authStore';
+import { useSessionStore } from '../../store/sessionStore';
 
 export default function ResultsPage() {
   const router = useRouter();

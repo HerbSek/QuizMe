@@ -3,9 +3,9 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import Layout from '@/components/Layout';
-import { useAuthStore } from '@/store/authStore';
-import { LoginCredentials } from '@/lib/auth';
+import Layout from '../components/Layout';
+import { useAuthStore } from '../store/authStore';
+import { LoginCredentials } from '../lib/auth';
 
 export default function Login() {
   const router = useRouter();

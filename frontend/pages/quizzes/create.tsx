@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useForm, useFieldArray } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import Layout from '@/components/Layout';
-import { useAuthStore } from '@/store/authStore';
-import { useQuizStore } from '@/store/quizStore';
-import { QuizCreate } from '@/lib/quiz';
+import Layout from '../../components/Layout';
+import { useAuthStore } from '../../store/authStore';
+import { useQuizStore } from '../../store/quizStore';
+import { QuizCreate } from '../../lib/quiz';
 
 interface QuizFormData {
   title: string;

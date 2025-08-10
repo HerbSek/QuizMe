@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import Layout from '@/components/Layout';
-import { useAuthStore } from '@/store/authStore';
-import { useSessionStore } from '@/store/sessionStore';
+import Layout from '../components/Layout';
+import { useAuthStore } from '../store/authStore';
+import { useSessionStore } from '../store/sessionStore';
 
 interface JoinGameForm {
   gameCode: string;

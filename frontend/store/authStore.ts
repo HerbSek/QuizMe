@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User, login, signup, getCurrentUser, setToken, removeToken, LoginCredentials, SignupCredentials } from '@/lib/auth';
+import { User, login, signup, getCurrentUser, setToken, removeToken, LoginCredentials, SignupCredentials } from '../lib/auth';
 
 interface AuthState {
   user: User | null;

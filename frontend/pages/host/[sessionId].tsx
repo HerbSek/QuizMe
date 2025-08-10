@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
-import Layout from '@/components/Layout';
-import { useAuthStore } from '@/store/authStore';
-import { useSessionStore } from '@/store/sessionStore';
-import { useQuizStore } from '@/store/quizStore';
-import { SessionStatus } from '@/lib/session';
+import Layout from '../../components/Layout';
+import { useAuthStore } from '../../store/authStore';
+import { useSessionStore } from '../../store/sessionStore';
+import { useQuizStore } from '../../store/quizStore';
+import { SessionStatus } from '../../lib/session';
 
 export default function HostGamePage() {
   const router = useRouter();
