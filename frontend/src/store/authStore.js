@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { login, signup, getCurrentUser, setToken, removeToken } from '../lib/api';
+import { login, signup, getCurrentUser, setToken, removeToken } from 'lib/api';
 
 export const useAuthStore = create((set, get) => ({
   user: null,

@@ -1,17 +1,15 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useSessionStore } from '../store/sessionStore';
-import { useAuthStore } from '../store/authStore';
+import { useSessionStore } from 'store/sessionStore';
+import { useAuthStore } from 'store/authStore';
 
 const Results = () => {
   const { sessionId } = useParams();
   const { user } = useAuthStore();
-  const { 
+  const {
     leaderboard,
     fetchLeaderboard,
-    isLoading: sessionLoading,
-    error,
-    clearError 
+    isLoading: sessionLoading
   } = useSessionStore();
 
   useEffect(() => {

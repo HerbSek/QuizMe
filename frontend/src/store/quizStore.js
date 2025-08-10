@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createQuiz, getMyQuizzes, getQuiz, deleteQuiz } from '../lib/api';
+import { createQuiz, getMyQuizzes, getQuiz, deleteQuiz } from 'lib/api';
 
 export const useQuizStore = create((set, get) => ({
   quizzes: [],

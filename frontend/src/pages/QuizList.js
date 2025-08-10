@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { useQuizStore } from '../store/quizStore';
-import { useSessionStore } from '../store/sessionStore';
+import { useQuizStore } from 'store/quizStore';
+import { useSessionStore } from 'store/sessionStore';
 
 const QuizList = () => {
   const navigate = useNavigate();

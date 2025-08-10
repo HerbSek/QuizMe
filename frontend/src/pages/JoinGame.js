@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { useSessionStore } from '../store/sessionStore';
+import { useSessionStore } from 'store/sessionStore';
 
 const JoinGame = () => {
   const navigate = useNavigate();

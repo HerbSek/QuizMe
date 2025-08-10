@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { useSessionStore } from '../store/sessionStore';
-import { useQuizStore } from '../store/quizStore';
-import { SessionStatus } from '../store/sessionStore';
+import { useSessionStore } from 'store/sessionStore';
+import { useQuizStore } from 'store/quizStore';
+import { SessionStatus } from 'store/sessionStore';
 
 const HostGame = () => {
   const { sessionId } = useParams();

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { startGameSession, joinGameSession, submitAnswer, getLeaderboard } from '../lib/api';
+import { startGameSession, joinGameSession, submitAnswer, getLeaderboard } from 'lib/api';
 
 export const SessionStatus = {
   WAITING: 'waiting',

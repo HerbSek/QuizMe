@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { useQuizStore } from '../store/quizStore';
+import { useQuizStore } from 'store/quizStore';
 
 const CreateQuiz = () => {
   const navigate = useNavigate();
